@@ -1,0 +1,8 @@
+[package]
+name = "ot-constant-generator"
+version = "0.1.0"
+authors = ["Roberto Perez Cubero <robj.perez@gmail.com>"]
+
+[dependencies]
+hyper = "0.9.*"
+getopts = "0.2.*"
