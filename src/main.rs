@@ -18,7 +18,8 @@ enum Language {
     Swift,
     ObjC,
     Java,
-    Kotlin
+    Kotlin,
+    Python
 }
 
 impl FromStr for Language {
@@ -29,6 +30,7 @@ impl FromStr for Language {
             "objc" => Ok(Language::ObjC),
             "java" => Ok(Language::Java),
             "kotlin" => Ok(Language::Kotlin),
+            "python" => Ok(Language::Python),
             _ => Err(())
         }
     }
@@ -78,7 +80,14 @@ impl SessionData {
             self.api_key,
             self.token,
             self.session_id),
-            Language::Kotlin => format!("//room: {}\nval APIKEY = \"{}\";\nval TOKEN = \"{}\";\nval SESSION_ID = \"{}\";\n",
+            Language::Kotlin =>
+            format!("//room: {}\nval APIKEY = \"{}\";\nval TOKEN = \"{}\";\nval SESSION_ID = \"{}\";\n",
+            self.room,
+            self.api_key,
+            self.token,
+            self.session_id),
+            Language::Python =>
+            format!("//room: {}\nAPIKEY = \"{}\"\nTOKEN = \"{}\"\nSESSION_ID = \"{}\"\n",
             self.room,
             self.api_key,
             self.token,
@@ -127,7 +136,7 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     let program = args[0].clone();
     let mut opts = Options::new();
-    opts.reqopt("l", "language", "output language" ,"swift, objc, java, kotlin");
+    opts.reqopt("l", "language", "output language" ,"swift, objc, java, kotlin, python");
     opts.optopt("e", "environment", "target env", "meet, opentokrtc");
     opts.optopt("r", "room", "room name", "STRING");
 
