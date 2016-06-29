@@ -120,8 +120,8 @@ impl SessionData {
 
         SessionData {
             api_key: String::from(apikey),
-            token: String::from(sid),
-            session_id: String::from(token),
+            token: String::from(token),
+            session_id: String::from(sid),
             room: String::from(room.as_ref())
         }
     }
