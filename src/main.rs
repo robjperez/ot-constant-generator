@@ -87,7 +87,7 @@ impl SessionData {
             self.token,
             self.session_id),
             Language::Python =>
-            format!("//room: {}\nAPIKEY = \"{}\"\nTOKEN = \"{}\"\nSESSION_ID = \"{}\"\n",
+            format!("#room: {}\nAPIKEY = \"{}\"\nTOKEN = \"{}\"\nSESSION_ID = \"{}\"\n",
             self.room,
             self.api_key,
             self.token,
