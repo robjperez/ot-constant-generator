@@ -38,7 +38,8 @@ impl FromStr for Language {
 
 enum Environment {
     Meet,
-    OpentokRtc
+    OpentokRtc,
+    OpentokDemo
 }
 
 impl FromStr for Environment {
@@ -47,6 +48,7 @@ impl FromStr for Environment {
         match s {
             "meet" => Ok(Environment::Meet),
             "opentokrtc" => Ok(Environment::OpentokRtc),
+            "opentokdemo" => Ok(Environment::OpentokDemo),
             _ => Err(())
         }
     }
@@ -102,7 +104,8 @@ impl SessionData {
 
         let url = match *env {
             Environment::Meet => format!("https://meet.tokbox.com/{}", room),
-            Environment::OpentokRtc => format!("https://opentokrtc.com/{}.json", room)
+            Environment::OpentokRtc => format!("https://opentokrtc.com/{}.json", room),
+            Environment::OpentokDemo => format!("https://opentokdemo.tokbox.com/room/{}/info", room)
         };
         //println!(">>> {}", url);
 

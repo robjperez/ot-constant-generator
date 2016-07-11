@@ -35,13 +35,13 @@ set -x OPENSSL_INCLUDE_DIR (brew --prefix openssl)/include
 
 After having your environment ready, just type
 
-`$ cargo install`
+`$ cargo clean && cargo install`
 
 ## How to use ##
 
 It has two parameters
 * -l | --language : [objc | swift | java | kotlin]
-* -e | --environment: [meet | opentokrtc (default)]
+* -e | --environment: [meet | opentokdemo | opentokrtc (default)]
 
 You may want to pipe the output to `pbcopy` to have it automatically copied to the clipboard
 
