@@ -71,7 +71,7 @@ impl SessionData {
             self.token,
             self.session_id),
             Language::Swift =>
-            format!("// room: {}\nlet APIKEY = \"{}\"\nlet TOKEN = \"{}\"\nlet SESSIONID = \"{}\"\n",
+            format!("// room: {}\nlet kApiKey = \"{}\"\nlet kToken = \"{}\"\nlet kSessionId = \"{}\"\n",
             self.room,
             self.api_key,
             self.token,
@@ -104,7 +104,7 @@ impl SessionData {
 
         let url = match *env {
             Environment::Meet => format!("https://meet.tokbox.com/{}", room),
-            Environment::OpentokRtc => format!("https://opentokrtc.com/{}.json", room),
+            Environment::OpentokRtc => format!("https://opentokrtc.com/room/{}/info", room),
             Environment::OpentokDemo => format!("https://opentokdemo.tokbox.com/room/{}/info", room)
         };
         //println!(">>> {}", url);
