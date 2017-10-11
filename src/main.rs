@@ -19,7 +19,8 @@ enum Language {
     ObjC,
     Java,
     Kotlin,
-    Python
+    Python,
+    FakePublisher
 }
 
 impl FromStr for Language {
@@ -31,6 +32,7 @@ impl FromStr for Language {
             "java" => Ok(Language::Java),
             "kotlin" => Ok(Language::Kotlin),
             "python" => Ok(Language::Python),
+            "fake-publisher" => Ok(Language::FakePublisher),
             _ => Err(())
         }
     }
@@ -93,7 +95,12 @@ impl SessionData {
             self.room,
             self.api_key,
             self.token,
-            self.session_id)
+            self.session_id),
+            Language::FakePublisher =>
+            format!("fake-publisher -sessionId \"{}\" -token \"{}\" -apiKey \"{}\"",
+            self.session_id,
+            self.token,
+            self.api_key)
         }
     }
     fn serialize(&self, lang: &Language) -> String {
@@ -139,7 +146,7 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     let program = args[0].clone();
     let mut opts = Options::new();
-    opts.reqopt("l", "language", "output language" ,"swift, objc, java, kotlin, python");
+    opts.reqopt("l", "language", "output language" ,"swift, objc, java, kotlin, python, fake-publisher");
     opts.optopt("e", "environment", "target env", "meet, opentokrtc");
     opts.optopt("r", "room", "room name", "STRING");
 
