@@ -20,7 +20,8 @@ enum Language {
     Java,
     Kotlin,
     Python,
-    FakePublisher
+    FakePublisher,
+    Csharp,
 }
 
 impl FromStr for Language {
@@ -33,7 +34,17 @@ impl FromStr for Language {
             "kotlin" => Ok(Language::Kotlin),
             "python" => Ok(Language::Python),
             "fake-publisher" => Ok(Language::FakePublisher),
+            "csharp" => Ok(Language::Csharp),
             _ => Err(())
+        }
+    }
+}
+
+impl Language {
+    fn get_api_key_default_var_name(self: &Language) -> String {
+        match self {
+            Language::Swift | Language::ObjC => String::from_str("kApiKey").unwrap(),
+            _ => String::from_str("APIKEY").unwrap(),
         }
     }
 }
@@ -64,35 +75,40 @@ struct SessionData {
 }
 
 impl SessionData {
-    fn get_out_string(&self, language: &Language) -> String {
+    fn get_out_string(&self, language: &Language, api_key_var_name: &String) -> String {
         match *language {
             Language::ObjC =>
-            format!("// room: {}\nstatic NSString* const kApiKey = @\"{}\";\nstatic NSString* const kToken = @\"{}\";\nstatic NSString* const kSessionId = @\"{}\";\n",
+            format!("// room: {}\nstatic NSString* const {} = @\"{}\";\nstatic NSString* const kToken = @\"{}\";\nstatic NSString* const kSessionId = @\"{}\";\n",
             self.room,
+            api_key_var_name,
             self.api_key,
             self.token,
             self.session_id),
             Language::Swift =>
-            format!("// room: {}\nlet kApiKey = \"{}\"\nlet kToken = \"{}\"\nlet kSessionId = \"{}\"\n",
+            format!("// room: {}\nlet {} = \"{}\"\nlet kToken = \"{}\"\nlet kSessionId = \"{}\"\n",
             self.room,
+            api_key_var_name,
             self.api_key,
             self.token,
             self.session_id),
             Language::Java =>
-            format!("//room: {}\npublic static final String APIKEY = \"{}\";\npublic static final String TOKEN = \"{}\";\npublic static final String SESSION_ID = \"{}\";\n",
+            format!("//room: {}\npublic static final String {} = \"{}\";\npublic static final String TOKEN = \"{}\";\npublic static final String SESSION_ID = \"{}\";\n",
             self.room,
+            api_key_var_name,
             self.api_key,
             self.token,
             self.session_id),
             Language::Kotlin =>
-            format!("//room: {}\nval APIKEY = \"{}\";\nval TOKEN = \"{}\";\nval SESSION_ID = \"{}\";\n",
+            format!("//room: {}\nval {} = \"{}\";\nval TOKEN = \"{}\";\nval SESSION_ID = \"{}\";\n",
             self.room,
+            api_key_var_name,
             self.api_key,
             self.token,
             self.session_id),
             Language::Python =>
-            format!("#room: {}\nAPIKEY = \"{}\"\nTOKEN = \"{}\"\nSESSION_ID = \"{}\"\n",
+            format!("#room: {}\n{} = \"{}\"\nTOKEN = \"{}\"\nSESSION_ID = \"{}\"\n",
             self.room,
+            api_key_var_name,
             self.api_key,
             self.token,
             self.session_id),
@@ -100,11 +116,18 @@ impl SessionData {
             format!("fake-publisher -sessionId \"{}\" -token \"{}\" -apiKey \"{}\"",
             self.session_id,
             self.token,
-            self.api_key)
+            self.api_key),
+            Language::Csharp =>
+            format!("//room: {}\npublic string {} = \"{}\";\npublic string TOKEN = \"{}\";\npublic string SESSION_ID = \"{}\";\n",
+            self.room,
+            api_key_var_name,
+            self.api_key,
+            self.token,
+            self.session_id),
         }
     }
-    fn serialize(&self, lang: &Language) -> String {
-        self.get_out_string(lang)
+    fn serialize(&self, lang: &Language, api_key_var_name: &String) -> String {
+        self.get_out_string(lang, api_key_var_name)
     }
 
     fn new(env: &Environment, room: &String) -> SessionData {
@@ -146,9 +169,10 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     let program = args[0].clone();
     let mut opts = Options::new();
-    opts.reqopt("l", "language", "output language" ,"swift, objc, java, kotlin, python, fake-publisher");
+    opts.reqopt("l", "language", "output language" ,"swift, objc, java, kotlin, python, fake-publisher, csharp");
     opts.optopt("e", "environment", "target env", "meet, opentokrtc");
     opts.optopt("r", "room", "room name", "STRING");
+    opts.optopt("a", "apikeyvar", "api key var name", "STRING");
 
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => { m }
@@ -167,5 +191,9 @@ fn main() {
 
     let session_data = SessionData::new(&env, &room);
     let lang = matches.opt_str("l").unwrap().parse::<Language>().unwrap();
-    print!("{}", session_data.serialize(&lang));
+    let api_key_var_name: String = match matches.opt_str("a") {
+        Some(a) => a,
+        _ => lang.get_api_key_default_var_name(),
+    };
+    print!("{}", session_data.serialize(&lang, &api_key_var_name));
 }
