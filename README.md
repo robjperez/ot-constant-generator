@@ -41,7 +41,7 @@ After having your environment ready, just type
 
 It has two parameters
 * -l | --language : [objc | swift | java | kotlin]
-* -e | --environment: [meet | opentokdemo | opentokrtc (default)]
+* -e | --environment: [meet | opentokdemo | opentokrtc (default) | opentok-meet.heroku]
 
 You may want to pipe the output to `pbcopy` to have it automatically copied to the clipboard
 

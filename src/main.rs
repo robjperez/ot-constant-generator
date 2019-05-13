@@ -52,7 +52,8 @@ impl Language {
 enum Environment {
     Meet,
     OpentokRtc,
-    OpentokDemo
+    OpentokDemo,
+    MeetHeroku
 }
 
 impl FromStr for Environment {
@@ -62,6 +63,7 @@ impl FromStr for Environment {
             "meet" => Ok(Environment::Meet),
             "opentokrtc" => Ok(Environment::OpentokRtc),
             "opentokdemo" => Ok(Environment::OpentokDemo),
+            "heroku" => Ok(Environment::MeetHeroku),
             _ => Err(())
         }
     }
@@ -135,7 +137,8 @@ impl SessionData {
         let url = match *env {
             Environment::Meet => format!("https://meet.tokbox.com/{}", room),
             Environment::OpentokRtc => format!("https://opentokrtc.com/room/{}/info", room),
-            Environment::OpentokDemo => format!("https://opentokdemo.tokbox.com/room/{}/info", room)
+            Environment::OpentokDemo => format!("https://opentokdemo.tokbox.com/room/{}/info", room),
+            Environment::MeetHeroku => format!("https://opentok-meet.herokuapp.com/{}", room),
         };
         //println!(">>> {}", url);
 
@@ -170,7 +173,7 @@ fn main() {
     let program = args[0].clone();
     let mut opts = Options::new();
     opts.reqopt("l", "language", "output language" ,"swift, objc, java, kotlin, python, fake-publisher, csharp");
-    opts.optopt("e", "environment", "target env", "meet, opentokrtc");
+    opts.optopt("e", "environment", "target env", "meet (dev), opentokrtc (prod), heroku (opentok-meet.herokuapp/prod)");
     opts.optopt("r", "room", "room name", "STRING");
     opts.optopt("a", "apikeyvar", "api key var name", "STRING");
 
