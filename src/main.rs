@@ -12,6 +12,8 @@ use hyper::client::Client;
 use hyper::Url;
 use std::io::Read;
 
+use std::fmt;
+
 use rustc_serialize::json::Json;
 
 enum Language {
@@ -49,11 +51,23 @@ impl Language {
     }
 }
 
+#[derive(Clone, Copy)]
 enum Environment {
     Meet,
     OpentokRtc,
     OpentokDemo,
     MeetHeroku
+}
+
+impl fmt::Display for Environment {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Environment::Meet => write!(f, "meet"),
+            Environment::OpentokRtc => write!(f, "opentokrtc"),
+            Environment::OpentokDemo => write!(f, "opentokdemo"),
+            Environment::MeetHeroku => write!(f, "opentok-meet"),
+        }
+    }
 }
 
 impl FromStr for Environment {
@@ -70,6 +84,7 @@ impl FromStr for Environment {
 }
 
 struct SessionData {
+    environment: Environment,
     api_key: String,
     token: String,
     session_id: String,
@@ -80,36 +95,41 @@ impl SessionData {
     fn get_out_string(&self, language: &Language, api_key_var_name: &String) -> String {
         match *language {
             Language::ObjC =>
-            format!("// room: {}\nstatic NSString* const {} = @\"{}\";\nstatic NSString* const kToken = @\"{}\";\nstatic NSString* const kSessionId = @\"{}\";\n",
+            format!("// room: {} ({})\nstatic NSString* const {} = @\"{}\";\nstatic NSString* const kToken = @\"{}\";\nstatic NSString* const kSessionId = @\"{}\";\n",
             self.room,
+            self.environment,
             api_key_var_name,
             self.api_key,
             self.token,
             self.session_id),
             Language::Swift =>
-            format!("// room: {}\nlet {} = \"{}\"\nlet kToken = \"{}\"\nlet kSessionId = \"{}\"\n",
+            format!("// room: {} ({})\nlet {} = \"{}\"\nlet kToken = \"{}\"\nlet kSessionId = \"{}\"\n",
             self.room,
+            self.environment,
             api_key_var_name,
             self.api_key,
             self.token,
             self.session_id),
             Language::Java =>
-            format!("//room: {}\npublic static final String {} = \"{}\";\npublic static final String TOKEN = \"{}\";\npublic static final String SESSION_ID = \"{}\";\n",
+            format!("//room: {} ({})\npublic static final String {} = \"{}\";\npublic static final String TOKEN = \"{}\";\npublic static final String SESSION_ID = \"{}\";\n",
             self.room,
+            self.environment,
             api_key_var_name,
             self.api_key,
             self.token,
             self.session_id),
             Language::Kotlin =>
-            format!("//room: {}\nval {} = \"{}\";\nval TOKEN = \"{}\";\nval SESSION_ID = \"{}\";\n",
+            format!("//room: {} ({})\nval {} = \"{}\";\nval TOKEN = \"{}\";\nval SESSION_ID = \"{}\";\n",
             self.room,
+            self.environment,
             api_key_var_name,
             self.api_key,
             self.token,
             self.session_id),
             Language::Python =>
-            format!("#room: {}\n{} = \"{}\"\nTOKEN = \"{}\"\nSESSION_ID = \"{}\"\n",
+            format!("#room: {} ({})\n{} = \"{}\"\nTOKEN = \"{}\"\nSESSION_ID = \"{}\"\n",
             self.room,
+            self.environment,
             api_key_var_name,
             self.api_key,
             self.token,
@@ -120,8 +140,9 @@ impl SessionData {
             self.token,
             self.api_key),
             Language::Csharp =>
-            format!("//room: {}\npublic string {} = \"{}\";\npublic string TOKEN = \"{}\";\npublic string SESSION_ID = \"{}\";\n",
+            format!("//room: {} ({})\npublic string {} = \"{}\";\npublic string TOKEN = \"{}\";\npublic string SESSION_ID = \"{}\";\n",
             self.room,
+            self.environment,
             api_key_var_name,
             self.api_key,
             self.token,
@@ -134,7 +155,7 @@ impl SessionData {
 
     fn new(env: &Environment, room: &String) -> SessionData {
 
-        let url = match *env {
+        let url = match env {
             Environment::Meet => format!("https://meet.tokbox.com/{}", room),
             Environment::OpentokRtc => format!("https://opentokrtc.com/room/{}/info", room),
             Environment::OpentokDemo => format!("https://opentokdemo.tokbox.com/room/{}/info", room),
@@ -155,6 +176,7 @@ impl SessionData {
         let apikey = obj.get("apiKey").unwrap().as_string().unwrap();
 
         SessionData {
+            environment: env.clone(),
             api_key: String::from(apikey),
             token: String::from(token),
             session_id: String::from(sid),
