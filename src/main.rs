@@ -13,6 +13,7 @@ use hyper::Url;
 use std::io::Read;
 
 use std::fmt;
+use std::process;
 
 use rustc_serialize::json::Json;
 
@@ -153,7 +154,7 @@ impl SessionData {
         self.get_out_string(lang, api_key_var_name)
     }
 
-    fn new(env: &Environment, room: &String) -> SessionData {
+    fn new(env: &Environment, room: &String) -> Result<SessionData, &'static str> {
 
         let url = match env {
             Environment::Meet => format!("https://meet.tokbox.com/{}", room),
@@ -171,17 +172,29 @@ impl SessionData {
         //println!("Response: {:?}", s);
         let data = Json::from_str(s.as_ref()).unwrap();
         let obj = data.as_object().unwrap();
-        let token = obj.get("token").unwrap().as_string().unwrap();
-        let sid = obj.get("sessionId").unwrap().as_string().unwrap();
-        let apikey = obj.get("apiKey").unwrap().as_string().unwrap();
 
-        SessionData {
+        let token = match obj.get("token") {
+            Some(e) => e.as_string().unwrap(),
+            _ => return Err("could not parse token")
+        };
+
+        let sid = match obj.get("sessionId") {
+            Some(e) => e.as_string().unwrap(),
+            _ => return Err("could not parse sessionId")
+        };
+
+        let apikey = match obj.get("apiKey") {
+            Some(e) => e.as_string().unwrap(),
+            _ => return Err("could not parse apikey")
+        };
+
+        Ok(SessionData {
             environment: env.clone(),
             api_key: String::from(apikey),
             token: String::from(token),
             session_id: String::from(sid),
             room: String::from(room.as_ref())
-        }
+        })
     }
 }
 
@@ -204,6 +217,11 @@ fn main() {
         Err(f) => { print!("Error: {}", f.to_string()); print_usage(&program, &opts); panic!() }
     };
 
+    let lang = match matches.opt_str("l") {
+        Some(e) => e.parse().unwrap(),
+        _ => Language::Swift
+    };
+
     let env = match matches.opt_str("e") {
         Some(e) => e.parse::<Environment>().unwrap(),
         _ => Environment::OpentokRtc
@@ -214,8 +232,11 @@ fn main() {
         _ => Uuid::new_v4().hyphenated().to_string()
     };
 
-    let session_data = SessionData::new(&env, &room);
-    let lang = matches.opt_str("l").unwrap().parse::<Language>().unwrap();
+    let session_data = match SessionData::new(&env, &room) {
+        Ok(e) => e,
+        Err(e) => { eprintln!("Error with server response: {}", e); process::exit(1); }
+    };
+
     let api_key_var_name: String = match matches.opt_str("a") {
         Some(a) => a,
         _ => lang.get_api_key_default_var_name(),
