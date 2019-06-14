@@ -89,7 +89,8 @@ struct SessionData {
     api_key: String,
     token: String,
     session_id: String,
-    room: String
+    room: String,
+	url: String
 }
 
 impl SessionData {
@@ -98,7 +99,7 @@ impl SessionData {
             Language::ObjC =>
             format!("// room: {} ({})\nstatic NSString* const {} = @\"{}\";\nstatic NSString* const kToken = @\"{}\";\nstatic NSString* const kSessionId = @\"{}\";\n",
             self.room,
-            self.environment,
+            self.url,
             api_key_var_name,
             self.api_key,
             self.token,
@@ -106,7 +107,7 @@ impl SessionData {
             Language::Swift =>
             format!("// room: {} ({})\nlet {} = \"{}\"\nlet kToken = \"{}\"\nlet kSessionId = \"{}\"\n",
             self.room,
-            self.environment,
+            self.url,
             api_key_var_name,
             self.api_key,
             self.token,
@@ -114,7 +115,7 @@ impl SessionData {
             Language::Java =>
             format!("//room: {} ({})\npublic static final String {} = \"{}\";\npublic static final String TOKEN = \"{}\";\npublic static final String SESSION_ID = \"{}\";\n",
             self.room,
-            self.environment,
+            self.url,
             api_key_var_name,
             self.api_key,
             self.token,
@@ -122,7 +123,7 @@ impl SessionData {
             Language::Kotlin =>
             format!("//room: {} ({})\nval {} = \"{}\";\nval TOKEN = \"{}\";\nval SESSION_ID = \"{}\";\n",
             self.room,
-            self.environment,
+            self.url,
             api_key_var_name,
             self.api_key,
             self.token,
@@ -130,7 +131,7 @@ impl SessionData {
             Language::Python =>
             format!("#room: {} ({})\n{} = \"{}\"\nTOKEN = \"{}\"\nSESSION_ID = \"{}\"\n",
             self.room,
-            self.environment,
+            self.url,
             api_key_var_name,
             self.api_key,
             self.token,
@@ -143,7 +144,7 @@ impl SessionData {
             Language::Csharp =>
             format!("//room: {} ({})\npublic string {} = \"{}\";\npublic string TOKEN = \"{}\";\npublic string SESSION_ID = \"{}\";\n",
             self.room,
-            self.environment,
+			self.url,
             api_key_var_name,
             self.api_key,
             self.token,
@@ -193,7 +194,8 @@ impl SessionData {
             api_key: String::from(apikey),
             token: String::from(token),
             session_id: String::from(sid),
-            room: String::from(room.as_ref())
+            room: String::from(room.as_ref(),
+			url: url)
         })
     }
 }
