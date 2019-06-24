@@ -157,12 +157,13 @@ impl SessionData {
 
     fn new(env: &Environment, room: &String) -> Result<SessionData, &'static str> {
 
-        let url = match env {
-            Environment::Meet => format!("https://meet.tokbox.com/{}", room),
-            Environment::OpentokRtc => format!("https://opentokrtc.com/room/{}/info", room),
-            Environment::OpentokDemo => format!("https://opentokdemo.tokbox.com/room/{}/info", room),
-            Environment::MeetHeroku => format!("https://opentok-meet.herokuapp.com/{}", room),
+        let (url, room_url) = match env {
+            Environment::Meet => (format!("https://meet.tokbox.com/{}", room), format!("https://meet.tokbox.com/{}", room)),
+            Environment::OpentokRtc => (format!("https://opentokrtc.com/room/{}/info", room), format!("https://opentokrtc.com/room/{}", room)),
+            Environment::OpentokDemo => (format!("https://opentokdemo.tokbox.com/room/{}/info", room),format!("https://opentokdemo.tokbox.com/room/{}", room)),
+            Environment::MeetHeroku => (format!("https://opentok-meet.herokuapp.com/{}", room), format!("https://opentok-meet.herokuapp.com/{}", room))
         };
+
         //println!(">>> {}", url);
 
         let client = Client::new();
@@ -194,8 +195,8 @@ impl SessionData {
             api_key: String::from(apikey),
             token: String::from(token),
             session_id: String::from(sid),
-            room: String::from(room.as_ref(),
-			url: url)
+            room: String::from(room.as_ref()),
+			url: room_url
         })
     }
 }
