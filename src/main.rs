@@ -2,7 +2,9 @@ extern crate getopts;
 extern crate uuid;
 extern crate hyper;
 extern crate rustc_serialize;
+extern crate strfmt;
 
+use std::collections::HashMap;
 use getopts::Options;
 use std::env;
 use std::str::FromStr;
@@ -16,6 +18,8 @@ use std::fmt;
 use std::process;
 
 use rustc_serialize::json::Json;
+
+use strfmt::strfmt;
 
 enum Language {
     Swift,
@@ -48,6 +52,18 @@ impl Language {
         match self {
             Language::Swift | Language::ObjC => String::from_str("kApiKey").unwrap(),
             _ => String::from_str("APIKEY").unwrap(),
+        }
+    }
+
+    fn get_output_format(&self) -> &'static str {
+        match self {
+            Language::ObjC => "// room: {room} ( {url} )\nstatic NSString* const {api_key_var_name} = @\"{api_key}\";\nstatic NSString* const kToken = @\"{token}\";\nstatic NSString* const kSessionId = @\"{session_id}\";\n",
+            Language::Swift => "// room: {room} ( {url} )\nlet {api_key_var_name} = \"{api_key}\"\nlet kToken = \"{token}\"\nlet kSessionId = \"{session_id}\"\n",
+            Language::Java => "//room: {room} ( {url} )\npublic static final String {api_key_var_name} = \"{api_key}\";\npublic static final String TOKEN = \"{token}\";\npublic static final String SESSION_ID = \"{session_id}\";\n",
+            Language::Kotlin => "//room: {room} ( {url} )\nval {api_key_var_name} = \"{api_key}\";\nval TOKEN = \"{token}\";\nval SESSION_ID = \"{session_id}\";\n",
+            Language::Python => "#room: {room} ( {url} )\n{api_key_var_name} = \"{api_key}\"\nTOKEN = \"{token}\"\nSESSION_ID = \"{session_id}\"\n",
+            Language::FakePublisher => "fake-publisher -sessionId \"{session_id}\" -token \"{token}\" -apiKey \"{api_key}\"",
+            Language::Csharp => "//room: {room} ( {url} )\npublic string {api_key_var_name} = \"{api_key}\";\npublic string TOKEN = \"{token}\";\npublic string SESSION_ID = \"{session_id}\";\n",
         }
     }
 }
@@ -85,7 +101,6 @@ impl FromStr for Environment {
 }
 
 struct SessionData {
-    environment: Environment,
     api_key: String,
     token: String,
     session_id: String,
@@ -95,76 +110,34 @@ struct SessionData {
 
 impl SessionData {
     fn get_out_string(&self, language: &Language, api_key_var_name: &String) -> String {
-        match *language {
-            Language::ObjC =>
-            format!("// room: {} ({})\nstatic NSString* const {} = @\"{}\";\nstatic NSString* const kToken = @\"{}\";\nstatic NSString* const kSessionId = @\"{}\";\n",
-            self.room,
-            self.url,
-            api_key_var_name,
-            self.api_key,
-            self.token,
-            self.session_id),
-            Language::Swift =>
-            format!("// room: {} ({})\nlet {} = \"{}\"\nlet kToken = \"{}\"\nlet kSessionId = \"{}\"\n",
-            self.room,
-            self.url,
-            api_key_var_name,
-            self.api_key,
-            self.token,
-            self.session_id),
-            Language::Java =>
-            format!("//room: {} ({})\npublic static final String {} = \"{}\";\npublic static final String TOKEN = \"{}\";\npublic static final String SESSION_ID = \"{}\";\n",
-            self.room,
-            self.url,
-            api_key_var_name,
-            self.api_key,
-            self.token,
-            self.session_id),
-            Language::Kotlin =>
-            format!("//room: {} ({})\nval {} = \"{}\";\nval TOKEN = \"{}\";\nval SESSION_ID = \"{}\";\n",
-            self.room,
-            self.url,
-            api_key_var_name,
-            self.api_key,
-            self.token,
-            self.session_id),
-            Language::Python =>
-            format!("#room: {} ({})\n{} = \"{}\"\nTOKEN = \"{}\"\nSESSION_ID = \"{}\"\n",
-            self.room,
-            self.url,
-            api_key_var_name,
-            self.api_key,
-            self.token,
-            self.session_id),
-            Language::FakePublisher =>
-            format!("fake-publisher -sessionId \"{}\" -token \"{}\" -apiKey \"{}\"",
-            self.session_id,
-            self.token,
-            self.api_key),
-            Language::Csharp =>
-            format!("//room: {} ({})\npublic string {} = \"{}\";\npublic string TOKEN = \"{}\";\npublic string SESSION_ID = \"{}\";\n",
-            self.room,
-			self.url,
-            api_key_var_name,
-            self.api_key,
-            self.token,
-            self.session_id),
-        }
+        let format = language.get_output_format();
+        let vars: HashMap<String, String> = match language {
+            Language::FakePublisher => [
+                (String::from("session_id"), self.session_id.clone()),
+                (String::from("token"), self.token.clone()),
+                (String::from("api_key"), self.api_key.clone())].iter().cloned().collect(),
+            _ => [(String::from("session_id"), self.session_id.clone()),
+                (String::from("room"), self.room.clone()),
+                (String::from("api_key"), self.api_key.clone()),
+                (String::from("token"), self.token.clone()),
+                (String::from("url"), self.url.clone()),
+                (String::from("api_key_var_name"), api_key_var_name.clone())].iter().cloned().collect()
+        };
+        
+        strfmt(&format, &vars).unwrap()
     }
+
     fn serialize(&self, lang: &Language, api_key_var_name: &String) -> String {
         self.get_out_string(lang, api_key_var_name)
     }
 
     fn new(env: &Environment, room: &String) -> Result<SessionData, &'static str> {
-
         let (url, room_url) = match env {
             Environment::Meet => (format!("https://meet.tokbox.com/{}", room), format!("https://meet.tokbox.com/{}", room)),
             Environment::OpentokRtc => (format!("https://opentokrtc.com/room/{}/info", room), format!("https://opentokrtc.com/room/{}", room)),
             Environment::OpentokDemo => (format!("https://opentokdemo.tokbox.com/room/{}/info", room),format!("https://opentokdemo.tokbox.com/room/{}", room)),
             Environment::MeetHeroku => (format!("https://opentok-meet.herokuapp.com/{}", room), format!("https://opentok-meet.herokuapp.com/{}", room))
         };
-
-        //println!(">>> {}", url);
 
         let client = Client::new();
         let mut res = client.get(Url::parse(url.as_ref()).unwrap()).send().unwrap();
@@ -191,7 +164,6 @@ impl SessionData {
         };
 
         Ok(SessionData {
-            environment: env.clone(),
             api_key: String::from(apikey),
             token: String::from(token),
             session_id: String::from(sid),
@@ -245,4 +217,13 @@ fn main() {
         _ => lang.get_api_key_default_var_name(),
     };
     print!("{}", session_data.serialize(&lang, &api_key_var_name));
+}
+
+#[test]
+fn test_session_data() {
+    let env = Environment::OpentokDemo;
+    let room = String::from("testotconstants");
+    let s = SessionData::new(&env, &room).unwrap();
+    let lang = Language::Swift;
+    println!("{}", s.serialize(&lang, &lang.get_api_key_default_var_name()));
 }

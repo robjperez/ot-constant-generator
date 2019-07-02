@@ -8,3 +8,4 @@ hyper = "0.9.*"
 getopts = "0.2.*"
 uuid = { version = "0.2", features = ["v4"] }
 rustc-serialize = "*"
+strfmt = "0.1.6"
