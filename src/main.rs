@@ -29,6 +29,7 @@ enum Language {
     Python,
     FakePublisher,
     Csharp,
+    Javascript,
 }
 
 impl FromStr for Language {
@@ -42,6 +43,7 @@ impl FromStr for Language {
             "python" => Ok(Language::Python),
             "fake-publisher" => Ok(Language::FakePublisher),
             "csharp" => Ok(Language::Csharp),
+            "javascript" => Ok(Language::Javascript),
             _ => Err(())
         }
     }
@@ -64,6 +66,7 @@ impl Language {
             Language::Python => "#room: {room} ( {url} )\n{api_key_var_name} = \"{api_key}\"\nTOKEN = \"{token}\"\nSESSION_ID = \"{session_id}\"\n",
             Language::FakePublisher => "fake-publisher -sessionId \"{session_id}\" -token \"{token}\" -apiKey \"{api_key}\"",
             Language::Csharp => "//room: {room} ( {url} )\npublic string {api_key_var_name} = \"{api_key}\";\npublic string TOKEN = \"{token}\";\npublic string SESSION_ID = \"{session_id}\";\n",
+            Language::Javascript => "//room: {room} ( {url} )\nlet {api_key_var_name} = \"{api_key}\";\nlet TOKEN = \"{token}\";\nlet SESSION_ID = \"{session_id}\";\n",
         }
     }
 }
@@ -167,7 +170,7 @@ impl SessionData {
             api_key: String::from(apikey),
             token: String::from(token),
             session_id: String::from(sid),
-            room: String::from(room.as_ref()),
+            room: String::from(room),
 			url: room_url
         })
     }
