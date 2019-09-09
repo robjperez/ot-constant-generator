@@ -1,9 +1,3 @@
-extern crate getopts;
-extern crate uuid;
-extern crate hyper;
-extern crate rustc_serialize;
-extern crate strfmt;
-
 use std::collections::HashMap;
 use getopts::Options;
 use std::env;
@@ -126,7 +120,7 @@ impl SessionData {
                 (String::from("url"), self.url.clone()),
                 (String::from("api_key_var_name"), api_key_var_name.clone())].iter().cloned().collect()
         };
-        
+
         strfmt(&format, &vars).unwrap()
     }
 
