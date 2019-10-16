@@ -2,11 +2,14 @@ use std::collections::HashMap;
 use getopts::Options;
 use std::env;
 use std::str::FromStr;
+use std::io::Read;
+
 use uuid::Uuid;
 
 use hyper::client::Client;
+use hyper::net::HttpsConnector;
+use hyper_native_tls::NativeTlsClient;
 use hyper::Url;
-use std::io::Read;
 
 use std::fmt;
 use std::process;
@@ -136,8 +139,12 @@ impl SessionData {
             Environment::MeetHeroku => (format!("https://opentok-meet.herokuapp.com/{}", room), format!("https://opentok-meet.herokuapp.com/{}", room))
         };
 
-        let client = Client::new();
-        let mut res = client.get(Url::parse(url.as_ref()).unwrap()).send().unwrap();
+        let ssl = NativeTlsClient::new().unwrap();
+        let connector = HttpsConnector::new(ssl);
+        let client = Client::with_connector(connector);
+        let parsed_uri = Url::parse(url.as_ref()).unwrap();
+
+        let mut res = client.get(parsed_uri).send().unwrap();
         let mut s = String::new();
         res.read_to_string(&mut s).unwrap();
 
@@ -201,7 +208,7 @@ fn main() {
 
     let room = match matches.opt_str("r") {
         Some(r) => r,
-        _ => Uuid::new_v4().hyphenated().to_string()
+        _ => Uuid::new_v4().to_hyphenated().to_string()
     };
 
     let session_data = match SessionData::new(&env, &room) {
