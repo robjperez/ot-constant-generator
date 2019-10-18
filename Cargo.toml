@@ -5,8 +5,7 @@ authors = ["Roberto Perez Cubero <robj.perez@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-hyper = "0.10.*"
-hyper-native-tls = "0.3.0"
+reqwest = "0.9.*"
 getopts = "0.2.21"
 uuid = { version = "0.7.4", features = ["v4"] }
 rustc-serialize = "0.3.24"

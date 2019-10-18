@@ -2,14 +2,8 @@ use std::collections::HashMap;
 use getopts::Options;
 use std::env;
 use std::str::FromStr;
-use std::io::Read;
 
 use uuid::Uuid;
-
-use hyper::client::Client;
-use hyper::net::HttpsConnector;
-use hyper_native_tls::NativeTlsClient;
-use hyper::Url;
 
 use std::fmt;
 use std::process;
@@ -139,16 +133,7 @@ impl SessionData {
             Environment::MeetHeroku => (format!("https://opentok-meet.herokuapp.com/{}", room), format!("https://opentok-meet.herokuapp.com/{}", room))
         };
 
-        let ssl = NativeTlsClient::new().unwrap();
-        let connector = HttpsConnector::new(ssl);
-        let client = Client::with_connector(connector);
-        let parsed_uri = Url::parse(url.as_ref()).unwrap();
-
-        let mut res = client.get(parsed_uri).send().unwrap();
-        let mut s = String::new();
-        res.read_to_string(&mut s).unwrap();
-
-        //println!("Response: {:?}", s);
+        let s = reqwest::get(&url).unwrap().text().unwrap();
         let data = Json::from_str(s.as_ref()).unwrap();
         let obj = data.as_object().unwrap();
 
