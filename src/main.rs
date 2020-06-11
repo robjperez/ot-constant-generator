@@ -21,6 +21,7 @@ enum Language {
     FakePublisher,
     Csharp,
     Javascript,
+    C,
 }
 
 impl FromStr for Language {
@@ -35,6 +36,7 @@ impl FromStr for Language {
             "fake-publisher" => Ok(Language::FakePublisher),
             "csharp" => Ok(Language::Csharp),
             "javascript" => Ok(Language::Javascript),
+            "c" => Ok(Language::C),
             _ => Err(())
         }
     }
@@ -58,6 +60,7 @@ impl Language {
             Language::FakePublisher => "fake-publisher -sessionId \"{session_id}\" -token \"{token}\" -apiKey \"{api_key}\"",
             Language::Csharp => "//room: {room} ( {url} )\npublic string {api_key_var_name} = \"{api_key}\";\npublic string TOKEN = \"{token}\";\npublic string SESSION_ID = \"{session_id}\";\n",
             Language::Javascript => "//room: {room} ( {url} )\nconst {api_key_var_name} = \"{api_key}\";\nconst TOKEN = \"{token}\";\nconst SESSION_ID = \"{session_id}\";\n",
+            Language::C => "//room: {room} ( {url} )\n#define {api_key_var_name} \"{api_key}\"\n#define TOKEN \"{token}\"\n#define SESSION_ID \"{session_id}\"\n",
         }
     }
 }
@@ -171,8 +174,8 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     let program = args[0].clone();
     let mut opts = Options::new();
-    opts.reqopt("l", "language", "output language" ,"swift, objc, java, kotlin, python, fake-publisher, csharp");
-    opts.optopt("e", "environment", "target env", "meet (dev), opentokrtc (prod), heroku (opentok-meet.herokuapp/prod)");
+    opts.reqopt("l", "language", "output language" ,"swift, objc, java, kotlin, python, fake-publisher, csharp, c");
+    opts.optopt("e", "environment", "target env", "meet (dev), opentokrtc (prod), opentokdemo(prod), heroku (opentok-meet.herokuapp/prod)");
     opts.optopt("r", "room", "room name", "STRING");
     opts.optopt("a", "apikeyvar", "api key var name", "STRING");
 
